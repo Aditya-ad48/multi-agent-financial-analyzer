@@ -1,19 +1,23 @@
+# Environment variables (API keys)
+.env
+
 # Python cache
 __pycache__/
 *.pyc
 
-# Jupyter checkpoints
-.ipynb_checkpoints/
-
-# VS Code settings
-.vscode/
-
 # Virtual environment
-.venv/
+finance_env/
+venv/
 
-# Logs
-*.log
+# Generated data
+vectorstore_final/
+query_cache_vectorstore/
+conversations/
+temp_uploads/
+
+# IDE
+.vscode/
+.idea/
 
 # OS files
 .DS_Store
-Thumbs.db
