@@ -110,31 +110,70 @@ This project implements a **swarm-based multi-agent system** for financial docum
 ### Agent Flow Diagram
 
 ```
-User Query
-    ↓
-┌─────────────┐
-│   Memory    │ ← Checks cache for similar queries
-└──────┬──────┘
-       ↓
-┌─────────────┐
-│  Retriever  │ ← Searches vector store for documents
-└──────┬──────┘
-       ↓
-┌─────────────┐
-│  Validator  │ ← Classifies intent & validates data
-└──────┬──────┘
-       ↓
-    ┌──┴──────────┐
-    │             │
-    ↓             ↓
-┌─────────┐  ┌──────────┐
-│WebSearch│  │Summarizer│
-└───┬─────┘  └────┬─────┘
-    │             │
-    ↓             ↓
-┌─────────┐  ┌────────┐  ┌──────┐
-│  Table  │→ │  Math  │→ │Aggr. │ → Final Answer
-└─────────┘  └────────┘  └──────┘
+                    User Query
+                        ↓
+                ┌───────────────┐
+                │    Memory     │ ← Checks cache (90% similarity)
+                └───────┬───────┘
+                        ↓
+                ┌───────┴────────┐
+                │  Cache Hit?    │
+                └───────┬────────┘
+                        │
+                ┌───────┴────────┐
+                ↓                ↓
+          YES: Skip         NO: Continue
+          to Aggregator     Pipeline
+                │                │
+                │                ↓
+                │        ┌───────────────┐
+                │        │   Retriever   │ ← Vector store search (k=10)
+                │        └───────┬───────┘
+                │                ↓
+                │        ┌───────────────┐
+                │        │   Validator   │ ← Intent + data validation
+                │        └───────┬───────┘
+                │                │
+                │        ┌───────┴────────────────────────────┐
+                │        │  Validator Decision Logic          │
+                │        │  1. Casual? → Aggregator           │
+                │        │  2. Insufficient data? → WebSearch │
+                │        │  3. Needs calculation? → Table     │
+                │        │  4. Needs summary? → Summarizer    │
+                │        └───────┬────────────────────────────┘
+                │                │
+                │    ┌───────────┼───────────┬────────────┐
+                │    ↓           ↓           ↓            ↓
+                │ ┌─────────┐ ┌────────┐ ┌──────────┐ ┌───────────┐
+                │ │WebSearch│ │ Table  │ │Summarizer│ │ Direct to │
+                │ └────┬────┘ └───┬────┘ └────┬─────┘ │ Aggregator│
+                │      │          │           │       └─────┬─────┘
+                │      │          │           │             │
+                │      ↓          │           │             │
+                │ ┌─────────┐     │           │             │
+                │ │Validator│     │           │             │
+                │ │(Re-eval)│     │           │             │
+                │ └────┬────┘     │           │             │
+                │      │          │           │             │
+                │  ┌───┴──────────┼───────────┤             │
+                │  ↓              ↓           ↓             │
+                │ WebSearch → Validator decides:            │
+                │  results      Table/Summarizer/Aggregator │
+                │                │           │              │
+                │                ↓           ↓              │
+                │            ┌────────┐  (goes to           │
+                │            │  Math  │  Aggregator)        │
+                │            └───┬────┘                     │
+                │                │                          │
+                └────────────────┼──────────────────────────┘
+                                 ↓
+                        ┌────────────────┐
+                        │  Aggregator    │ ← Synthesizes final answer
+                        │  (Caches)      │
+                        └────────┬───────┘
+                                 ↓
+                          Final Answer
+
 ```
 
 ### Agent Responsibilities
