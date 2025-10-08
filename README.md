@@ -13,6 +13,42 @@
 
 ---
 
+## 🚀 Quick Start
+
+1. **Get API Keys** (all required):
+   - GROQ: https://console.groq.com
+   - Tavily: https://app.tavily.com
+   - Unstructured: https://unstructured.io
+
+2. **Clone & Install**:
+   ```
+   git clone https://github.com/Aditya-ad48/INTERIIT-NLP-Prepathon.git
+   cd INTERIIT-NLP-Prepathon
+   python -m venv finance_env
+   source finance_env/bin/activate  # On Windows: finance_env\Scripts\activate
+   pip install -r requirements.txt
+   ```
+
+3. **Configure Environment**:
+   ```
+   cp .env.example .env
+   # Edit .env and add your three API keys
+   ```
+
+4. **Ingest Documents**:
+   ```
+   mkdir -p data
+   # Add PDFs to data/ folder
+   python ingest.py
+   ```
+
+5. **Run Application**:
+   ```
+   streamlit run app_streamlit.py
+   ```
+
+---
+
 ## 📋 Table of Contents
 
 - [Overview](#-overview)
@@ -21,6 +57,8 @@
 - [Installation](#-installation)
 - [Usage](#-usage)
 - [Agent Descriptions](#-agent-descriptions)
+- [PDF Processing Pipeline](#-pdf-processing-pipeline)
+- [Chart & Image Analysis with Groq Vision](#-chart--image-analysis-with-groq-vision)
 - [Project Structure](#-project-structure)
 - [Configuration](#-configuration)
 - [Technologies Used](#-technologies-used)
@@ -30,11 +68,7 @@
 
 ## 🎯 Overview
 
-This project implements a sophisticated multi-agent system for financial document analysis using **LangGraph** orchestration. The system intelligently routes queries through specialized agents, each responsible for distinct tasks like document retrieval, web search, data extraction, calculations, and answer generation.
-
-Built for the **Inter IIT Tech Meet**, this system demonstrates advanced AI agent coordination, retrieval-augmented generation (RAG), and dynamic query routing.
-
-### What Makes This Special?
+This project implements a **swarm-based multi-agent system** for financial document analysis using **LangGraph** orchestration. Unlike hierarchical architectures with central supervisors, this system enables **autonomous agent coordination** where each specialized agent independently decides the next handoff based on query requirements and data availability.
 
 - **🧠 Intelligent Intent Classification**: Distinguishes between casual queries, conversation history requests, and informational questions
 - **🔄 Dynamic Agent Orchestration**: Agents autonomously decide next steps based on query requirements
@@ -58,6 +92,7 @@ Built for the **Inter IIT Tech Meet**, this system demonstrates advanced AI agen
 | **Conversation Memory** | Thread-aware caching and conversation history tracking |
 | **PDF Processing** | Advanced document parsing and chunking |
 | **Web Search Integration** | Real-time external data retrieval via Tavily API |
+| **Vision Analysis** | Groq Vision API extracts data from charts/graphs/images |
 
 ### 🛠️ Technical Features
 
@@ -89,14 +124,14 @@ User Query
 │  Validator  │ ← Classifies intent & validates data
 └──────┬──────┘
        ↓
-    ┌──┴──┐
-    │     │
-    ↓     ↓
-┌────────┐  ┌──────────┐
+    ┌──┴──────────┐
+    │             │
+    ↓             ↓
+┌─────────┐  ┌──────────┐
 │WebSearch│  │Summarizer│
-└───┬────┘  └────┬─────┘
-    │            │
-    ↓            ↓
+└───┬─────┘  └────┬─────┘
+    │             │
+    ↓             ↓
 ┌─────────┐  ┌────────┐  ┌──────┐
 │  Table  │→ │  Math  │→ │Aggr. │ → Final Answer
 └─────────┘  └────────┘  └──────┘
@@ -106,39 +141,39 @@ User Query
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ Memory Agent                                                  │
-│ -  Query cache lookup using vector similarity                 │
-│ -  Thread-aware conversation history                          │
+│ Memory Agent                                                 │
+│ -  Query cache lookup using vector similarity                │
+│ -  Thread-aware conversation history                         │
 ├──────────────────────────────────────────────────────────────┤
 │ Retriever Agent                                              │
-│ -  Document retrieval from Chroma vector store                │
-│ -  Semantic search with embeddings                            │
+│ -  Document retrieval from Chroma vector store               │
+│ -  Semantic search with embeddings                           │
 ├──────────────────────────────────────────────────────────────┤
 │ Validator Agent                                              │
-│ -  Intent classification (casual/informational/history)       │
-│ -  Query type detection (calculation/summary/general)         │
-│ -  Data relevance validation                                  │
+│ -  Intent classification (casual/informational/history)      │
+│ -  Query type detection (calculation/summary/general)        │
+│ -  Data relevance validation                                 │
 ├──────────────────────────────────────────────────────────────┤
 │ WebSearch Agent                                              │
-│ -  External data retrieval via Tavily API                     │
-│ -  Fallback for insufficient document data                    │
+│ -  External data retrieval via Tavily API                    │
+│ -  Fallback for insufficient document data                   │
 ├──────────────────────────────────────────────────────────────┤
 │ Summarizer Agent                                             │
-│ -  Concise content summarization                              │
-│ -  Handles large document contexts                            │
+│ -  Concise content summarization                             │
+│ -  Handles large document contexts                           │
 ├──────────────────────────────────────────────────────────────┤
 │ Table Agent                                                  │
-│ -  Structured numeric data extraction                         │
-│ -  JSON formatting of financial metrics                       │
+│ -  Structured numeric data extraction                        │
+│ -  JSON formatting of financial metrics                      │
 ├──────────────────────────────────────────────────────────────┤
 │ Math Agent                                                   │
-│ -  Financial calculations (ratios, growth rates, etc.)        │
-│ -  Comparative analysis                                       │
+│ -  Financial calculations (ratios, growth rates, etc.)       │
+│ -  Comparative analysis                                      │
 ├──────────────────────────────────────────────────────────────┤
 │ Aggregator Agent                                             │
-│ -  Final answer synthesis                                     │
-│ -  Error handling and user-friendly responses                 │
-│ -  Query caching for future lookups                           │
+│ -  Final answer synthesis                                    │
+│ -  Error handling and user-friendly responses                │
+│ -  Query caching for future lookups                          │
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -150,7 +185,7 @@ User Query
 
 - Python 3.9 or higher
 - pip package manager
-- API keys (GROQ, Tavily)
+- API keys (GROQ, Tavily, Unstructured)
 
 ### Step 1: Clone the Repository
 
@@ -191,11 +226,13 @@ Edit `.env` and add your API keys:
 ```
 GROQ_API_KEY=your_groq_api_key_here
 TAVILY_API_KEY=your_tavily_api_key_here
+UNSTRUCTURED_API_KEY=your_unstructured_api_key_here
 ```
 
 **Get API Keys:**
-- **GROQ**: [console.groq.com](https://console.groq.com)
-- **Tavily**: [app.tavily.com](https://app.tavily.com)
+- **GROQ**: [console.groq.com](https://console.groq.com) - For LLM inference
+- **Tavily**: [app.tavily.com](https://app.tavily.com) - For web search
+- **Unstructured**: [unstructured.io](https://unstructured.io) - For advanced PDF parsing
 
 ### Step 5: Prepare Document Store
 
@@ -366,6 +403,157 @@ The application will open in your browser at `http://localhost:8501`
 
 ---
 
+## 📄 PDF Processing Pipeline
+
+### Unstructured API Integration
+
+This system uses **Unstructured.io** for advanced PDF document processing, enabling robust extraction of text, tables, and structured data from financial documents.
+
+### Processing Flow
+
+```
+PDF Upload
+    ↓
+┌───────────────────────────┐
+│  Unstructured API         │
+│  -  Text extraction       │
+│  -  Table detection       │
+│  -  Layout analysis       │
+│  -  Element classification│
+└──────────┬────────────────┘
+           ↓
+┌───────────────────────────┐
+│  Document Chunking        │
+│  -  Semantic segmentation │
+│  -  Overlap handling      │
+│  -  Metadata preservation │
+└──────────┬────────────────┘
+           ↓
+┌───────────────────────────┐
+│  Vector Store (Chroma)    │
+│  -  Embedding generation  │
+│  -  Index creation        │
+│  -  Semantic search ready │
+└───────────────────────────┘
+```
+
+### Why Unstructured API?
+
+| Feature | Benefit |
+|---------|---------|
+| **Multi-format Support** | Handles PDFs, images, tables seamlessly |
+| **Layout Preservation** | Maintains document structure and hierarchy |
+| **Table Extraction** | Accurately extracts financial tables and data |
+| **Cloud-based** | Scalable processing without local dependencies |
+| **OCR Support** | Handles scanned documents |
+
+### Usage in Code
+
+```
+# pdf_utils.py
+from unstructured_client import UnstructuredClient
+from config import UNSTRUCTURED_API_KEY
+
+client = UnstructuredClient(api_key_auth=UNSTRUCTURED_API_KEY)
+
+# Process PDF with advanced parsing
+elements = partition_pdf_flexible(
+    filename=pdf_path,
+    strategy="hi_res",  # High-resolution mode
+    extract_images=False
+)
+
+# Elements include text, tables, titles, etc.
+documents = process_elements(elements)
+```
+
+### Configuration
+
+Edit `config.py` to customize PDF processing:
+
+```
+# PDF Processing Settings
+UNSTRUCTURED_STRATEGY = "hi_res"  # or "fast" for speed
+CHUNK_SIZE = 1000
+CHUNK_OVERLAP = 200
+```
+
+---
+
+## 📊 Chart & Image Analysis with Groq Vision
+
+### Multimodal Document Understanding
+
+This system uses **Groq's Vision API** (`meta-llama/llama-4-scout-17b-16e-instruct`) to extract structured data from charts, graphs, and images embedded in financial PDFs.
+
+### How It Works
+
+```
+PDF Document
+    ↓
+┌─────────────────────────────┐
+│ Unstructured API            │
+│ - Detects images/charts     │
+│ - Extracts as base64        │
+│ - Identifies element types  │
+└──────────┬──────────────────┘
+           ↓
+┌─────────────────────────────┐
+│ Groq Vision API             │
+│ Model: llama-4-scout-17b    │
+│ - Analyzes image content    │
+│ - Extracts numeric data     │
+│ - Identifies trends         │
+└──────────┬──────────────────┘
+           ↓
+┌─────────────────────────────┐
+│ Structured Text Output      │
+│ - Chart titles              │
+│ - Data points with labels   │
+│ - Axis information          │
+│ - Annotations               │
+└─────────────────────────────┘
+```
+
+### Vision Extraction Capabilities
+
+The `analyze_chart_with_groq()` function extracts:
+
+| Element Type       | Extracted Information                   |
+|--------------------|----------------------------------------|
+| **Bar Charts**     | Values, labels, comparisons            |
+| **Line Graphs**    | Trends, data points, time series       |
+| **Pie Charts**     | Percentages, category breakdowns       |
+| **Financial Tables** | Row/column headers, numeric values   |
+| **Diagrams**       | Annotations, relationships             |
+| **Mixed Visuals**  | Text overlays, legends                 |
+
+Vision analysis is **automatically triggered** during PDF ingestion when the Unstructured API detects visual elements:
+
+### Vision API Configuration
+
+**Model Details**:
+- **Model**: `meta-llama/llama-4-scout-17b-16e-instruct`
+- **Context Window**: 16K tokens
+- **Max Output**: 2048 tokens
+- **Temperature**: 0 (deterministic)
+- **Image Size Limit**: 5MB
+
+**Usage Limits**:
+- GROQ free tier: Shared with text inference quota
+- Image processing: ~2-4 seconds per chart
+- Automatic fallback: If vision fails, uses text extraction
+
+### Advantages Over OCR
+
+| Traditional OCR           | Groq Vision (LLM-based)         |
+|--------------------------|---------------------------------|
+| Extracts raw text only   | Understands context & structure |
+| Misses chart relationships| Identifies trends & patterns   |
+| No numeric interpretation | Extracts labeled data points   |
+| Fails on complex layouts | Handles multi-element visuals   |
+---
+
 ## 📁 Project Structure
 
 ```
@@ -406,8 +594,9 @@ INTERIIT-NLP-Prepathon/
 
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `GROQ_API_KEY` | GROQ LLM API key | ✅ Yes |
-| `TAVILY_API_KEY` | Tavily search API key | ✅ Yes |
+| `GROQ_API_KEY` | GROQ LLM API key for inference | ✅ Yes |
+| `TAVILY_API_KEY` | Tavily search API key for web search | ✅ Yes |
+| `UNSTRUCTURED_API_KEY` | Unstructured API key for PDF processing | ✅ Yes |
 
 ### Configurable Parameters
 
@@ -416,6 +605,7 @@ Edit `config.py` to customize:
 ```
 # LLM Configuration
 LLM_MODEL = "llama-3.3-70b-versatile"
+and "openai/gpt-oss-120b"
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
 
 # Vector Store
@@ -426,6 +616,22 @@ RETRIEVAL_K = 10  # Number of documents to retrieve
 
 # Timeouts
 AGENT_TIMEOUT = 30  # seconds
+
+# PDF Processing Settings
+UNSTRUCTURED_STRATEGY = "hi_res"  # or "fast" for speed
+CHUNK_SIZE = 1000
+CHUNK_OVERLAP = 200
+
+# Vision API Settings
+VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
+MAX_IMAGE_SIZE = 5000000  # 5MB
+VISION_MAX_WORKERS = 4  # Parallel image processing
+VISION_TEMPERATURE = 0
+VISION_MAX_TOKENS = 2048
+
+# Unstructured API configuration
+EXTRACT_IMAGE_TYPES = ["Image", "Table"]  # Element types to extract
+PARALLEL_WORKERS = 4  # Concurrent element processing
 ```
 
 ---
@@ -439,16 +645,20 @@ AGENT_TIMEOUT = 30  # seconds
 
 ### AI & ML
 - **GROQ**: High-performance LLM inference
+  - Text: `llama-3.3-70b-versatile` & `openai/gpt-oss-120b`
+  - Vision: `meta-llama/llama-4-scout-17b-16e-instruct`
 - **Chroma**: Vector database for semantic search
-- **HuggingFace**: Embedding models
+- **HuggingFace**: Embedding models (`all-MiniLM-L6-v2`)
 
 ### APIs
-- **Tavily**: Web search API
-- **Unstructured**: PDF parsing and extraction
+- **Tavily**: Web search API for real-time external data
+- **Unstructured**: Advanced PDF parsing with image/chart detection
+- **GROQ Vision**: Multimodal chart and image analysis
 
 ### Data Processing
-- **Pandas**: Data manipulation
+- **Pandas**: Data manipulation and table parsing
 - **PyPDF**: PDF document handling
+- **Base64**: Image encoding for vision API
 
 ---
 
@@ -501,22 +711,14 @@ This project is licensed under the MIT License.
 
 ## 🙏 Acknowledgments
 
-- **Inter IIT Tech Meet** for the opportunity
 - **LangChain Team** for LangGraph framework
 - **GROQ** for high-performance LLM inference
 - **Tavily** for web search capabilities
+- **Unstructured.io** for advanced PDF processing
 
 ---
 
 <div align="center">
-
-**Built with ❤️ for Inter IIT Tech Meet 2025**
-
-⭐ Star this repo if you found it helpful!
-
-</div>
-
----
 
 ## 📚 Research Papers & Foundations
 
@@ -546,9 +748,6 @@ This project implements concepts from the following research papers:
    - [arXiv:2312.10997](https://arxiv.org/abs/2312.10997)
    - **Implementation**: Thread-aware caching, semantic similarity search
 
-### Technical Innovations
-
-- **Intent Classification**: LLM-based query routing
-- **Task Specialization**: Domain-specific agents (financial analysis, calculations)
-- **Fault Tolerance**: Exponential backoff retry logic
 - **State Persistence**: LangGraph checkpointing with MemorySaver
+
+---
