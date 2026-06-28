@@ -1,4 +1,4 @@
-# 🤖 Multi Agent QA for Financial Documents
+# 🤖 MFinSwarm: Multi-Agent Financial Document Intelligence using LangGraph
 
 <div align="center">
 
