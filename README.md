@@ -1,4 +1,4 @@
-# 🤖 MFinSwarm: Multi-Agent Financial Document Intelligence using LangGraph
+# 🤖 FinSwarm: Multi-Agent Financial Document Intelligence using LangGraph
 
 <div align="center">
 
